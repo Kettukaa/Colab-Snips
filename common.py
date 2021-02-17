@@ -37,8 +37,8 @@ def generate_video(image_generator, filename, fps):
         filename (str): The location the mp4 will be saved to.
         fps (int): The FPS of the video. 
     """
+    writer = imageio.get_writer(filename, format='FFMPEG', mode='I', fps=fps)
     try:
-        writer = imageio.get_writer(filename, format='FFMPEG', mode='I', fps=fps)
         for images in image_generator:
             [writer.append_data(im) for im in images]
     except Exception as e:
