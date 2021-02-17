@@ -11,9 +11,19 @@ def batched_synthesis_generator(W, G, batch_size):
     w_batches = torch.split(W, batch_size)
     for batch in w_batches:
         images = G.synthesis(batch, noise_mode='const', force_fp32=True)
-        images = (images.permute(0,2,3,1)*127.5 + 128).clamp(0,255).to(torch.uint8).cpu().numpy()
+        images = torch2uint8(images)
         yield images
-        
+
+def torch2uint8(images, permute_order=[0,2,3,1]):
+    r"""Convert batch of torch samples into a NumPy image array.
+    Arguments:
+        images (tensor): raw image samples.
+        permute_order: adjusts the permute order of tensor.permute()
+    Returns:
+        numpy array of images. 
+    """
+    return (images.permute(*permute_order)*127.5 + 128).clamp(0,255).to(torch.uint8).cpu().numpy()
+
 def batched_generator(Z, G, batch_size, truncation_psi):
     r"""Generator that yields batches of images from Z vectors.
     Arguments:
@@ -25,7 +35,7 @@ def batched_generator(Z, G, batch_size, truncation_psi):
     z_batches = torch.split(Z, batch_size)
     for batch in z_batches:
         images = G(batch, None, truncation_psi=truncation_psi)
-        images = (images.permute(0,2,3,1)*127.5 + 128).clamp(0,255).to(torch.uint8).cpu().numpy()
+        images = torch2uint8(images)
         yield images
 
 def generate_video(image_generator, filename, fps):
