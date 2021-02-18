@@ -1,6 +1,5 @@
 import imageio
 import torch
-import cv2
 
 def torch2uint8(images, permute_order=[0,2,3,1]):
     r"""Convert batch of torch samples into a NumPy image array.
@@ -39,7 +38,7 @@ def batched_generator(Z, G, batch_size, truncation_psi):
         images = torch2uint8(images)
         yield images
 
-def generate_video(image_generator, filename, fps, image_size=(512,512):
+def generate_video(image_generator, filename, fps):
     r"""Generate mp4 from a collection of images.
     Arguments:
         image_generator (generator): The generator object to get images from. 
@@ -47,18 +46,15 @@ def generate_video(image_generator, filename, fps, image_size=(512,512):
                                      but tuples and lists can be used aswell. 
         filename (str): The location the mp4 will be saved to.
         fps (int): The FPS of the video. 
-        image_size (tuple): The video dimensions.
     """
-    fourcc = cv2.VideoWriter_fourcc(*'MJPG')
-    out = cv2.VideoWriter(filename, fourcc, fps, image_size)
-    try: 
+    writer = imageio.get_writer(filename, format='FFMPEG', mode='I', fps=fps)
+    try:
         for images in image_generator:
-            for image in images:
-                map(out.write, images)
+            map(writer.append_data, images)
     except Exception as e:
         print(e)
     finally:
-        out.release()
+        writer.close()
 
 def slerp(v0, v1, t, DOT_THRESHHOLD=0.9995):
     r"""Spherical interpolation between two tensors
