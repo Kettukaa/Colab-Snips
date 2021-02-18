@@ -1,5 +1,6 @@
 import imageio
 import torch
+import cv2
 
 def batched_synthesis_generator(W, G, batch_size):
     r"""Generator that yields batches of images from W vectors.
@@ -38,7 +39,7 @@ def batched_generator(Z, G, batch_size, truncation_psi):
         images = torch2uint8(images)
         yield images
 
-def generate_video(image_generator, filename, fps):
+def generate_video(image_generator, filename, fps, image_size=(512,512):
     r"""Generate mp4 from a collection of images.
     Arguments:
         image_generator (generator): The generator object to get images from. 
@@ -46,15 +47,18 @@ def generate_video(image_generator, filename, fps):
                                      but tuples and lists can be used aswell. 
         filename (str): The location the mp4 will be saved to.
         fps (int): The FPS of the video. 
+        image_size (tuple): The video dimensions.
     """
-    writer = imageio.get_writer(filename, format='FFMPEG', mode='I', fps=fps)
-    try:
+    fourcc = cv2.VideoWriter_fourcc(*'MJPG')
+    out = cv2.VideoWriter(filename, fourcc, fps, image_size)
+    try: 
         for images in image_generator:
-            [writer.append_data(im) for im in images]
+            for image in images:
+                map(out.write, images)
     except Exception as e:
         print(e)
     finally:
-        writer.close()
+        out.release()
 
 def slerp(v0, v1, t, DOT_THRESHHOLD=0.9995):
     r"""Spherical interpolation between two tensors
