@@ -50,7 +50,7 @@ def generate_video(image_generator, filename, fps):
     writer = imageio.get_writer(filename, format='FFMPEG', mode='I', fps=fps)
     try:
         for images in image_generator:
-            map(writer.append_data, images)
+            list(map(writer.append_data, images))
     except Exception as e:
         print(e)
     finally:
