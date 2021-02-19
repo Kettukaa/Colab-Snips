@@ -1,5 +1,6 @@
 import imageio
 import torch
+import tqdm.notebook as tqdm
 
 def torch2uint8(images, permute_order=[0,2,3,1]):
     r"""Convert batch of torch samples into a NumPy image array.
@@ -38,7 +39,7 @@ def batched_generator(Z, G, batch_size, truncation_psi):
         images = torch2uint8(images)
         yield images
 
-def generate_video(image_generator, filename, fps):
+def generate_video(image_generator, filename, fps, its, disable_tqdm=False):
     r"""Generate mp4 from a collection of images.
     Arguments:
         image_generator (generator): The generator object to get images from. 
@@ -49,7 +50,7 @@ def generate_video(image_generator, filename, fps):
     """
     writer = imageio.get_writer(filename, format='FFMPEG', mode='I', fps=fps)
     try:
-        for images in image_generator:
+        for images in tqdm.tqdm(image_generator, total=its, desc='Generating batches', disable=disable_tqdm):
             list(map(writer.append_data, images))
     except Exception as e:
         print(e)
